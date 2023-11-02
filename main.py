@@ -1,11 +1,22 @@
 import pygame
 import sys
 
+def scoring():
+    time = int(pygame.time.get_ticks()/1000) - starttime
+    score = font.render(f'Score : {time}', False, 'Black')
+    score_rect = score.get_rect(topleft = (880, 20))
+    screen.blit(score, score_rect)
+    return time
+
 pygame.init()
 
 clock = pygame.time.Clock()
 
-new_game = True
+new_game = False
+
+starttime = 0
+
+finalscore = 0
 
 font = pygame.font.Font('assets/Pixeltype.ttf', 50)
 
@@ -20,12 +31,9 @@ bg_surface = pygame.image.load('assets/bg.png').convert()
 
 game_over = font.render('GAME OVER', False, 'Black')
 
-fscore = font.render('final score', False, 'Black')
-fscore_rect = fscore.get_rect(center = (525, 100))
+restart = font.render('Press SPACE to Start', False, 'Black')
+restart_rect = restart.get_rect(midbottom = (525, 200))
 
-
-score = font.render('Score:', False, 'Black')
-score_rect = score.get_rect(topleft = (900, 20))
 
 cact_img = pygame.image.load('assets/cactus.png').convert_alpha()
 cact = pygame.transform.scale(cact_img, (40, 60)).convert_alpha()
@@ -38,6 +46,9 @@ player = pygame.transform.scale(player_img, (55, 60)).convert_alpha()
 player_hb = player.get_rect(midbottom = (100, 225))
 
 player_grav = 0
+
+enemy_spawn = pygame.USEREVENT + 1
+pygame.time.set_timer(enemy_spawn, 900)
 
 while(run):
     for event in pygame.event.get():
@@ -53,10 +64,17 @@ while(run):
             if(event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE):
                 new_game = True
                 cactus_hb.x = cactxpos
+                starttime = int(pygame.time.get_ticks() / 1000)
+
+        if (event.type == enemy_spawn) and new_game:
+            print("TEST")
+            
 
     if(new_game):
         screen.fill((0, 0, 0))
         screen.blit(bg_surface,(0, 0))
+
+        finalscore = scoring()
 
         cactus_hb.x -= 5
         if (cactus_hb.right <= 0):
@@ -72,15 +90,19 @@ while(run):
             player_grav = 0
         
         if(cactus_hb.colliderect(player_hb) == 1):
-            cactus_hb.left = player_hb.right
-            screen.blit(game_over, (450, 50))
             new_game = False
         
-        screen.blit(score, score_rect)
-
     else:
+        fscore = font.render(f'You got : {finalscore}', False, 'Black')
+        fscore_rect = fscore.get_rect(center = (525, 100))
         
-        screen.blit(fscore, fscore_rect)
+        if(finalscore == 0):
+            screen.blit(bg_surface,(0, 0))
+            screen.blit(restart, restart_rect)
+        else:
+            screen.blit(bg_surface,(0, 0))
+            screen.blit(game_over, (450, 50))
+            screen.blit(fscore, fscore_rect)
 
     pygame.display.update()
     clock.tick(60)
